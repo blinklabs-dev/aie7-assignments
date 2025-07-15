@@ -3,3 +3,5 @@ venv/
 *.lock
 **/DataRepository/
 __pycache__/
+*.lock
+uv.lock
