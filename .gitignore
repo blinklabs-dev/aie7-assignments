@@ -1,2 +1,5 @@
-.DS_Store
-.env
+venv/
+.venv/
+*.lock
+**/DataRepository/
+__pycache__/
