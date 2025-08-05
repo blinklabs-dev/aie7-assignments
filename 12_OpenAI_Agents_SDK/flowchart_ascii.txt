@@ -1,0 +1,68 @@
+OpenAI Agents SDK Research Bot Flowchart
+==========================================
+
+User Query
+    │
+    ▼
+┌─────────────────┐
+│  Planner Agent  │
+│  (GPT-4.1)     │
+│                 │
+│ • Analyzes query│
+│ • Generates     │
+│   5-20 search   │
+│   terms         │
+│ • Outputs:      │
+│   WebSearchPlan │
+└─────────────────┘
+    │
+    ▼
+┌─────────────────┐
+│  Search Agent   │
+│  (GPT-4.1)     │
+│                 │
+│ • Uses          │
+│   WebSearchTool │
+│ • Performs      │
+│   web searches  │
+│ • Outputs:      │
+│   Concise       │
+│   summaries     │
+└─────────────────┘
+    │
+    ▼
+┌─────────────────┐
+│  Writer Agent   │
+│  (o3-mini)     │
+│                 │
+│ • Synthesizes   │
+│   all results   │
+│ • Creates       │
+│   comprehensive │
+│   report        │
+│ • Outputs:      │
+│   ReportData    │
+└─────────────────┘
+    │
+    ▼
+┌─────────────────┐
+│  Final Output   │
+│                 │
+│ • Markdown      │
+│   report        │
+│   (5-10 pages) │
+│ • Follow-up     │
+│   questions     │
+│   (5 unique)    │
+└─────────────────┘
+
+Data Flow:
+User Query → WebSearchPlan → Search Results → ReportData → Final Report
+
+Key Features:
+• Structured outputs ensure reliable data flow
+• WebSearchTool enables real web searches
+• Progress tracking with Printer class
+• Error handling for failed searches
+• Trace IDs for debugging
+• Streaming updates during report generation 
