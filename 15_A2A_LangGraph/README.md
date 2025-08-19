@@ -87,9 +87,41 @@ Do this by creating a Simple Agent that can make API calls to the 🤖Agent Node
 
 What are the core components of an `AgentCard`?
 
+##### ✅ Answer:
+
+An AgentCard is like a digital business card for an AI agent. It contains several key parts:
+
+**Basic Identity**: The agent's name, description, version number, and URL - basically who it is and what it does.
+
+**Capabilities**: What the agent can actually do, like whether it supports streaming responses, push notifications, or real-time updates.
+
+**Skills**: A list of specific abilities the agent has, such as web search, academic paper search, or document retrieval. Each skill includes examples of how to use it.
+
+**Protocol Information**: Technical details like which version of the A2A protocol it uses and how it prefers to communicate (like JSON-RPC).
+
+**Content Types**: What kinds of input and output the agent can handle, such as text, images, or other data formats.
+
+Think of it as a complete profile that tells other agents "here's what I can do and how to talk to me."
+
 ### ❓ Question #2:
 
 Why is A2A (and other such protocols) important in your own words?
+
+##### ✅ Answer:
+
+A2A protocols are crucial because they solve the "tower of Babel" problem for AI agents. Here's why they matter:
+
+**Standardization**: Without A2A, every AI agent would have its own way of talking - some might use JSON, others XML, and some might invent their own format. It would be like trying to have a conversation where everyone speaks a different language.
+
+**Quality Control**: A2A includes built-in helpfulness evaluation, so agents don't just give any response - they actually check if their answer is useful before finishing. This prevents agents from giving useless or incomplete responses.
+
+**Teamwork**: With A2A, different agents can work together seamlessly. A research agent can talk to an analysis agent, which can then talk to a report-writing agent, all using the same protocol.
+
+**Future-Proofing**: As AI becomes more common in businesses and applications, having a standard way for agents to communicate means you can mix and match different AI services without worrying about compatibility.
+
+**Accountability**: The protocol includes clear ways to track what agents are doing, handle errors gracefully, and maintain conversation context across multiple interactions.
+
+It's like having a universal language and etiquette rules for AI agents - without it, we'd have chaos where nothing can talk to anything else effectively.
 
 ### 🚧 Advanced Build:
 

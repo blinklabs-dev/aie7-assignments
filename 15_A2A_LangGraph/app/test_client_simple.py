@@ -1,28 +1,15 @@
 #!/usr/bin/env python3
 """
-🧪 A2A Protocol Test Client - Clean & Readable Version
+🧪 A2A Protocol Test Client - Simple Version
 
-This client tests the A2A (Agent-to-Agent) protocol implementation with:
-- Agent card discovery
-- Single message testing
-- Multi-turn conversations
-- Streaming responses
-
-Usage: uv run python app/test_client.py
+A clean, simple version without external dependencies for maximum compatibility.
 """
 
 import asyncio
-import json
 from typing import Any
 from uuid import uuid4
 
 import httpx
-from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
-from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich import print as rprint
 
 from a2a.client import A2ACardResolver, A2AClient
 from a2a.types import (
@@ -31,47 +18,38 @@ from a2a.types import (
     SendMessageRequest,
     SendStreamingMessageRequest,
 )
-from a2a.utils.constants import AGENT_CARD_WELL_KNOWN_PATH
-
-# Initialize Rich console for beautiful output
-console = Console()
 
 def print_header(title: str, emoji: str = "🚀"):
-    """Print a beautiful header with separator."""
-    console.print(f"\n{emoji} {title}")
-    console.print("=" * 80)
+    """Print a header with separator."""
+    print(f"\n{emoji} {title}")
+    print("=" * 80)
 
 def print_step(step: str, emoji: str = "➡️"):
     """Print a step with visual indicator."""
-    console.print(f"\n{emoji} {step}")
-    console.print("-" * 60)
+    print(f"\n{emoji} {step}")
+    print("-" * 60)
 
 def print_success(message: str, emoji: str = "✅"):
     """Print a success message."""
-    console.print(f"{emoji} {message}", style="bold green")
+    print(f"{emoji} {message}")
 
 def print_info(message: str, emoji: str = "ℹ️"):
     """Print an info message."""
-    console.print(f"{emoji} {message}", style="blue")
+    print(f"{emoji} {message}")
 
 def print_response(title: str, content: str, emoji: str = "🤖"):
     """Print a formatted response."""
-    panel = Panel(
-        Text(content, style="white"),
-        title=f"{emoji} {title}",
-        border_style="green",
-        padding=(1, 2)
-    )
-    console.print(panel)
+    print(f"\n{emoji} {title}")
+    print("─" * 60)
+    print(content)
+    print("─" * 60)
 
 def extract_response_text(response_data: dict) -> str:
     """Extract the actual response text from the A2A response."""
     try:
-        # Navigate through the response structure to find the text
         if 'result' in response_data:
             result = response_data['result']
             if 'artifacts' in result and result['artifacts']:
-                # Get the first artifact's text
                 artifact = result['artifacts'][0]
                 if 'parts' in artifact and artifact['parts']:
                     return artifact['parts'][0].get('text', 'No text found')
@@ -93,37 +71,26 @@ async def test_agent_card_discovery(base_url: str, httpx_client: httpx.AsyncClie
         agent_card = await resolver.get_agent_card()
         print_success(f"Successfully fetched agent card from {base_url}")
         
-        # Display agent card info in a table
-        table = Table(title="Agent Card Information")
-        table.add_column("Property", style="cyan", no_wrap=True)
-        table.add_column("Value", style="white")
-        
-        table.add_row("Name", agent_card.name)
-        table.add_row("Description", agent_card.description[:100] + "..." if len(agent_card.description) > 100 else agent_card.description)
-        table.add_row("Version", agent_card.version)
-        table.add_row("Protocol Version", agent_card.protocol_version)
-        table.add_row("Capabilities", f"Streaming: {agent_card.capabilities.streaming}, Push: {agent_card.capabilities.push_notifications}")
-        table.add_row("Skills", f"{len(agent_card.skills)} skills available")
-        
-        console.print(table)
+        # Display agent card info
+        print(f"\n📋 Agent Information:")
+        print(f"   Name: {agent_card.name}")
+        print(f"   Description: {agent_card.description}")
+        print(f"   Version: {agent_card.version}")
+        print(f"   Protocol: {agent_card.protocol_version}")
+        print(f"   Capabilities: Streaming={agent_card.capabilities.streaming}, Push={agent_card.capabilities.push_notifications}")
         
         # Show skills
         if agent_card.skills:
-            skills_table = Table(title="Available Skills")
-            skills_table.add_column("Skill", style="cyan")
-            skills_table.add_column("Description", style="white")
-            skills_table.add_column("Examples", style="yellow")
-            
-            for skill in agent_card.skills:
-                examples = ", ".join(skill.examples[:2]) if skill.examples else "None"
-                skills_table.add_row(skill.name, skill.description, examples)
-            
-            console.print(skills_table)
+            print(f"\n🛠️  Available Skills ({len(agent_card.skills)}):")
+            for i, skill in enumerate(agent_card.skills, 1):
+                print(f"   {i}. {skill.name}: {skill.description}")
+                if skill.examples:
+                    print(f"      Examples: {', '.join(skill.examples[:2])}")
         
         return agent_card
         
     except Exception as e:
-        console.print(f"❌ Failed to fetch agent card: {e}", style="bold red")
+        print(f"❌ Failed to fetch agent card: {e}")
         raise
 
 async def test_single_message(client: A2AClient, message: str) -> dict:
@@ -145,14 +112,9 @@ async def test_single_message(client: A2AClient, message: str) -> dict:
         params=MessageSendParams(**send_message_payload)
     )
     
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
-        task = progress.add_task("Processing message...", total=None)
-        response = await client.send_message(request)
-        progress.update(task, completed=True)
+    print("⏳ Processing message...")
+    response = await client.send_message(request)
+    print("✅ Processing complete!")
     
     response_data = response.model_dump(mode='json', exclude_none=True)
     response_text = extract_response_text(response_data)
@@ -183,14 +145,9 @@ async def test_multi_turn_conversation(client: A2AClient):
         params=MessageSendParams(**send_message_payload),
     )
     
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
-        task = progress.add_task("Processing first message...", total=None)
-        response = await client.send_message(request)
-        progress.update(task, completed=True)
+    print("⏳ Processing first message...")
+    response = await client.send_message(request)
+    print("✅ First message complete!")
     
     response_data = response.model_dump(mode='json', exclude_none=True)
     first_response_text = extract_response_text(response_data)
@@ -224,14 +181,9 @@ async def test_multi_turn_conversation(client: A2AClient):
         params=MessageSendParams(**second_payload),
     )
     
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
-        task = progress.add_task("Processing follow-up message...", total=None)
-        second_response = await client.send_message(second_request)
-        progress.update(task, completed=True)
+    print("⏳ Processing follow-up message...")
+    second_response = await client.send_message(second_request)
+    print("✅ Follow-up complete!")
     
     second_response_data = second_response.model_dump(mode='json', exclude_none=True)
     second_response_text = extract_response_text(second_response_data)
@@ -259,7 +211,7 @@ async def test_streaming_response(client: A2AClient, message: str):
     )
     
     print_info("Starting streaming response...")
-    console.print("\n[bold cyan]Streaming chunks:[/bold cyan]")
+    print("\n📤 Streaming chunks:")
     
     stream_response = client.send_message_streaming(streaming_request)
     
@@ -276,21 +228,20 @@ async def test_streaming_response(client: A2AClient, message: str):
                 if kind == 'status-update':
                     if 'status' in result and 'message' in result['status']:
                         message_content = result['status']['message']['parts'][0]['text']
-                        console.print(f"  📤 {message_content}", style="yellow")
+                        print(f"  📤 {message_content}")
                 elif kind == 'artifact-update':
                     if 'artifact' in result and 'parts' in result['artifact']:
                         artifact_text = result['artifact']['parts'][0]['text']
-                        console.print(f"  📦 Final Response: {artifact_text[:100]}...", style="green")
+                        print(f"  📦 Final Response: {artifact_text[:100]}...")
     
     print_success(f"Streaming completed! Received {chunk_count} chunks")
 
 async def main() -> None:
     """Main test function."""
-    console.print(Panel.fit(
-        "[bold blue]A2A Protocol Test Client[/bold blue]\n"
-        "[white]Testing LangGraph Agent with A2A Protocol[/white]",
-        border_style="blue"
-    ))
+    print("╭───────────────────────────────────────────╮")
+    print("│ A2A Protocol Test Client                  │")
+    print("│ Testing LangGraph Agent with A2A Protocol │")
+    print("╰───────────────────────────────────────────╯")
     
     base_url = 'http://localhost:10000'
     
@@ -323,18 +274,16 @@ async def main() -> None:
             )
             
             # Final success message
-            console.print(Panel.fit(
-                "[bold green]🎉 All Tests Completed Successfully![/bold green]\n"
-                "[white]Your A2A protocol implementation is working perfectly![/white]",
-                border_style="green"
-            ))
+            print("\n╭────────────────────────────────────────────────────────╮")
+            print("│ 🎉 All Tests Completed Successfully!                   │")
+            print("│ Your A2A protocol implementation is working perfectly! │")
+            print("╰────────────────────────────────────────────────────────╯")
             
         except Exception as e:
-            console.print(Panel.fit(
-                f"[bold red]❌ Test Failed[/bold red]\n"
-                f"[white]Error: {str(e)}[/white]",
-                border_style="red"
-            ))
+            print("\n╭────────────────────────────────────────────────────────╮")
+            print(f"│ ❌ Test Failed                                        │")
+            print(f"│ Error: {str(e)}                                       │")
+            print("╰────────────────────────────────────────────────────────╯")
             raise
 
 if __name__ == '__main__':
